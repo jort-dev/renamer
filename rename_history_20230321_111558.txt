@@ -1,8 +1,0 @@
-.gitignore/.gitignore_renamed
-README.md/README_renamed.md
-rename.py/rename_renamed.py
-rename_20230321_103106.txt/rename_20230321_103106_renamed.txt
-rename_20230321_103116.txt/rename_20230321_103116_renamed.txt
-renamer.py/renamer_renamed.py
-requirements.txt/requirements_renamed.txt
-test.txt/test_renamed.txt
