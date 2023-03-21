@@ -1,0 +1,3 @@
+natsort
+pygobject # needed for pywebview
+pywebview[qt]
