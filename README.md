@@ -26,21 +26,22 @@ Open the terminal in the cloned folder and activate the created virtual environm
 ```shell
 . venv\bin\activate
 ```
-Edit the [rename.py](rename.py) file to define how files need to be named, and run the script:
+Edit the [rename.py](rename.py) file to define how files need to be named, and run the [renamer.py](renamer.py) script:
 ```shell
 python renamer.py
 ```
-This launches a file picker to choose in which folder the files need to be renamed.  
+This launches a file picker to choose the folder in which the files need to be renamed.  
 After renaming the files, a `rename_history_TIMESTAMP.txt` file will be put in the folder.  
+This can be used to undo the renaming process.
 
 ## Undoing renaming
-After renaming the files, a `rename_history_TIMESTAMP.txt` file will be put in the folder.  
+After renaming the files, a `rename_history_TIMESTAMP.txt` file is saved in the folder.  
 This can be used to undo the renaming by running the [undo_rename.py](undo_rename.py) script:
 ```shell
 python undo_rename.py
 ```
 This launches a folder picker, where you choose a folder in which the renaming needs to be undone.
-In the selected folder, it seeks the latest created `rename_history_TIMESTAMP.txt` file and undoes the renaming according to this file, and deletes it.
+In the selected folder, it seeks the last created `rename_history_TIMESTAMP.txt` file, undoes the renaming according to this file, and deletes it.
 
 
 

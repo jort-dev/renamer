@@ -8,6 +8,7 @@
 
 import os
 import pathlib
+import shutil
 import sys
 import time
 
@@ -16,7 +17,8 @@ from natsort import natsorted
 
 import rename
 
-debug = True  # enable more printed messages, disables the actual renaming of files
+debug = False  # enable more printed messages, disables the actual renaming of files
+test = True  # enable testing parameters like the test folder
 
 
 def printt(*args, **kwargs):
@@ -32,9 +34,12 @@ def determine_renames(folder_path, filenames):
         file_path = os.path.join(folder_path, filename)
         filename_base = pathlib.Path(file_path).stem
         filename_extension = pathlib.Path(file_path).suffix
-        new_filename = rename.rename(folder_path, filename_base,
-                                     filename_extension)  # separate function for easier configuration
+        new_filename = rename.rename_file(folder_path, filename, filename_base,
+                                          filename_extension)  # separate function for easier configuration
         printt(f"{filename} -> {new_filename}")
+        if filename == new_filename:
+            printt(f"Filename not changed, ignoring.")
+            continue
         new_file_path = os.path.join(folder_path, new_filename)
         renames.append([file_path, new_file_path])
     printt(f"All {len(renames)} determined")
@@ -82,8 +87,7 @@ def apply_renames(renames):
             to_path = rename[1]
             printt(f"{from_path} -> {to_path}")
             if not debug:
-                # shutil.move(from_path, to_path)
-                pass
+                shutil.move(from_path, to_path)
             applied_renames.append(rename)
         except:
             print(f"A rename has failed: {rename}. WARNING: Not all files have been renamed.")
@@ -115,7 +119,10 @@ def ask_folder():
     def open_file_dialog(w):
         nonlocal dir_path
         try:
-            dir_path = w.create_file_dialog(webview.FOLDER_DIALOG, directory=os.getcwd())[0]
+            if test:
+                dir_path = w.create_file_dialog(webview.FOLDER_DIALOG, directory="/home/jort/rename_test")[0]
+            else:
+                dir_path = w.create_file_dialog(webview.FOLDER_DIALOG, directory=os.getcwd())[0]
         except TypeError:
             pass  # user exited file dialog without picking
         finally:
