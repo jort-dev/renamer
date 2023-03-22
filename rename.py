@@ -24,4 +24,10 @@ Examples:
 get the folder name
 folder_name = folder_path.split("/")[-1]
 
+
+
+
+Rename folder
+gets called after all the files in that folder have been renamed, maybe you want to include the amount of files / timestamp range or whatever
+
 """

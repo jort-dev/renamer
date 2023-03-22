@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """
-- determine the new filenames
-- check if any new filename already exists, if yes, abort all
-- rename all
-- save the history
-"""
+iterate all the folders
+keep track which files are in each folder
+for each folder, call the rename file function, and then the folder rename function
+keep track of the renames
+rename all files, then all folders
+]
 
+
+"""
+import argparse
 import os
 import pathlib
 import shutil
-import sys
 import time
 
 import webview
@@ -17,13 +20,30 @@ from natsort import natsorted
 
 import rename
 
-debug = False  # enable more printed messages, disables the actual renaming of files
-test = True  # enable testing parameters like the test folder
+print(f"Rename program started")
+parser = argparse.ArgumentParser(
+    prog="Renamer",
+    description="Rename files with Python code",
+    epilog="Created by Jort: github.com/jort-dev")
+parser.add_argument("-t", "--test",
+                    help="disables the actual moving of files",
+                    action="store_true",
+                    )
+parser.add_argument("-v", "--verbose",
+                    help="prints more messages about the process",
+                    action="store_true",
+                    )
+parser.add_argument("folder_paths",
+                    nargs=argparse.REMAINDER,
+                    help="the path to the folder(s) containing the files to rename",
+                    )
+args = parser.parse_args()
+print(args)
 
 
-def printt(*args, **kwargs):
-    if debug:
-        to_print = " ".join(map(str, args))
+def printt(*argss, **kwargs):
+    if args.verbose:
+        to_print = " ".join(map(str, argss))
         print(to_print, **kwargs)
 
 
@@ -86,7 +106,7 @@ def apply_renames(renames):
             from_path = rename[0]
             to_path = rename[1]
             printt(f"{from_path} -> {to_path}")
-            if not debug:
+            if not args.test:
                 shutil.move(from_path, to_path)
             applied_renames.append(rename)
         except:
@@ -113,16 +133,17 @@ def read_filenames(folder_path):
     return filenames
 
 
-def ask_folder():
-    dir_path = None
+def ask_folders():
+    # returns None if no folder is choosen, otherwise a list of paths
+    dir_paths = None
 
     def open_file_dialog(w):
-        nonlocal dir_path
+        nonlocal dir_paths
         try:
-            if test:
-                dir_path = w.create_file_dialog(webview.FOLDER_DIALOG, directory="/home/jort/rename_test")[0]
-            else:
-                dir_path = w.create_file_dialog(webview.FOLDER_DIALOG, directory=os.getcwd())[0]
+            dir_paths = w.create_file_dialog(dialog_type=webview.FOLDER_DIALOG,
+                                             allow_multiple=True,
+                                             directory=os.getcwd()
+                                             )
         except TypeError:
             pass  # user exited file dialog without picking
         finally:
@@ -130,27 +151,34 @@ def ask_folder():
 
     window = webview.create_window("", hidden=True)
     webview.start(open_file_dialog, window)
-    return dir_path
+    return dir_paths
 
 
-def get_folder_path():
-    folder_path = sys.argv[1] if len(sys.argv) > 1 else None
-    if not folder_path:
-        printt("No path supplied as argument, launching folder picker")
-        folder_path = ask_folder()
-        if not folder_path or not os.path.isdir(folder_path):
+def get_folder_paths():
+    if not args.folder_paths or len(args.folder_paths) == 0:
+        printt("No folders supplied as argument, launching folder picker")
+        folder_paths = ask_folders()
+        if not folder_paths:
             quit("You picked an invalid folder")
 
-    folder_path = os.path.abspath(folder_path)
-    print(f"Renaming items in {folder_path}")
-    return folder_path
+        for folder_path in folder_paths:
+            if not folder_path or not os.path.isdir(folder_path):
+                quit("You picked an invalid folder")
+    else:
+        folder_paths = args.folder_paths
+
+    print(folder_paths)
+    folder_paths = [os.path.abspath(folder_path) for folder_path in folder_paths]
+    print(f"Renaming items in folders: {folder_paths}")
+    return folder_paths
 
 
-print(f"Rename program started")
-folder_path = get_folder_path()
-filenames = read_filenames(folder_path)
-renames = determine_renames(folder_path, filenames)
-validate_renames(renames)
-applied_renames = apply_renames(renames)
-save_rename_history(folder_path, applied_renames)
-print(f"Done")
+folder_paths = get_folder_paths()
+for folder_path in folder_paths:
+    filenames = read_filenames(folder_path)
+    renames = determine_renames(folder_path, filenames)
+    validate_renames(renames)
+    applied_renames = apply_renames(renames)
+    # rename folder here todo
+    save_rename_history(folder_path, applied_renames)
+print(f"Rename program finished")

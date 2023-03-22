@@ -4,7 +4,7 @@ This allows you to rename precisely how you want, whilst only knowing basic Pyth
 No need to learn a whole GUI, regular expressions or other specific things.
 
 ## Installing
-Open the terminal in cloned folder and create a virtual Python environment called `venv` to prevent package issues:
+Open terminal in the cloned folder and create a virtual Python environment called `venv` to prevent package issues:
 ```shell
 python -m venv venv
 ```
@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ```
 
 ## Usage
-Open the terminal in the cloned folder and activate the created virtual environment:
+Open a terminal in the cloned folder and activate the created virtual environment:
 ```shell
 . venv\bin\activate
 ```
