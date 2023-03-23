@@ -33,6 +33,17 @@ parser.add_argument("-v", "--verbose",
                     help="prints more messages about the process",
                     action="store_true",
                     )
+parser.add_argument("-i", "--ignore-hidden",
+                    help="ignore hidden files starting with a dot. "
+                         "the hidden .rename_history_TIMESTAMP.txt file is already ignored",
+                    action="store_true",
+                    )
+parser.add_argument("-d", "--depth",
+                    help="the depth of the folders to use. default is 0, just the files in the selected folders,"
+                         " 1 is to rename only the files within the folders of the selected folders, etc",
+                    type=int,
+                    default=0
+                    )
 parser.add_argument("folder_paths",
                     nargs=argparse.REMAINDER,
                     help="the path to the folder(s) containing the files to rename",
@@ -126,6 +137,9 @@ def read_filenames(folder_path):
         if filename.startswith("rename_history_") and filename.endswith(".txt"):
             printt(f"Skipping backup file {filename}")
             continue
+        if args.ignore_hidden and filename.startswith("."):
+            printt(f"Ignoring hidden file {filename}")
+            continue
         filenames.append(filename)
 
     filenames = natsorted(filenames, key=lambda y: y.lower())  # sort items same as the file manager does
@@ -149,8 +163,10 @@ def ask_folders():
         finally:
             w.destroy()
 
+    printt(f"Launching folder picker")
     window = webview.create_window("", hidden=True)
     webview.start(open_file_dialog, window)
+    printt(f"You picked these folders: {dir_paths}")
     return dir_paths
 
 
@@ -167,7 +183,16 @@ def get_folder_paths():
     else:
         folder_paths = args.folder_paths
 
-    print(folder_paths)
+    # recursively retrieve all the folders within the folders until the defined depth
+    for depth in range(1, args.depth + 1):
+        printt(f"Scanning depth level {depth}")
+        parent_folder_paths = folder_paths
+        folder_paths = []
+        for folder_path in parent_folder_paths:
+            for item in os.listdir(folder_path):
+                if os.path.isdir(os.path.join(folder_path, item)):
+                    folder_paths.append(item)
+
     folder_paths = [os.path.abspath(folder_path) for folder_path in folder_paths]
     print(f"Renaming items in folders: {folder_paths}")
     return folder_paths
