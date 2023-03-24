@@ -5,7 +5,6 @@ keep track which files are in each folder
 for each folder, call the rename file function, and then the folder rename function
 keep track of the renames
 rename all files, then all folders
-]
 
 
 """
@@ -85,54 +84,93 @@ def determine_renames(folder_path, filenames):
     return renames
 
 
-def validate_renames(renames):
-    printt(f"Validating the paths to what the files are going to be renamed")
-    used_paths = []
-    for rename in renames:
-        old = rename[0]
-        if not os.path.isfile(old):
-            quit(f"Cannot rename, not a file: {old}")
-        new = rename[1]
-        if os.path.exists(new):
-            quit(f"Cannot rename: existing path: {new}")
-        if new in used_paths:
-            quit(f"Cannot rename: duplicate renamed file, files must have unique filenames: {new}")
-        used_paths.append(new)
+def validate_renames(all_renames):
+    printt(f"Validating the renames")
+    for renames in all_renames:
+        folder_rename = renames[0]
+        folder_from = folder_rename[0]
+        folder_to = folder_rename[1]
+        printt(f"Validating renames for {folder_from}")
+        if folder_from != folder_to:  # if we are renaming the folder, check if destination path is available
+            if os.path.exists(folder_to):
+                quit(f"Cannot rename: folder rename is existing path: {folder_to}")
+
+        used_paths = []
+        for rename in renames[1:]:
+            old = rename[0]
+            if not os.path.isfile(old):
+                quit(f"Cannot rename, not a file: {old}")
+            new = rename[1]
+            if os.path.exists(new):
+                quit(f"Cannot rename: existing path: {new}")
+            if new in used_paths:
+                quit(f"Cannot rename: duplicate renamed file, files must have unique filenames: {new}")
+            used_paths.append(new)
 
     printt(f"All renames are valid")
 
 
-def save_rename_history(renames):
+def save_rename_history(all_renames):
     printt(f"Saving the renaming history")
     # use / as separator because its the only visible illegal filename character
     # https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
     # save the filename only and not the full path case cluttered and in case folder gets moved
     runtime_timestamp = time.strftime("%Y%m%d_%H%M%S")
-    rename_history_filename = f"rename_history_{runtime_timestamp}.txt"
-    with open(os.path.join(folder_path, rename_history_filename), "w") as history_file:
-        for rename in renames:
-            old_filename = pathlib.Path(rename[0]).name
-            new_filename = pathlib.Path(rename[1]).name
-            history_file.write(f"{old_filename}/{new_filename}\n")
-    printt(f"Saved rename history as {rename_history_filename}")
+    rename_history_filename = f".rename_history_{runtime_timestamp}.txt"
+    printt(f"Saving rename history files as {rename_history_filename}")
+    for renames in all_renames:
+        folder_rename = renames[0]
+        folder_from = folder_rename[0]
+        folder_to = folder_rename[1]
+        append = ""
+        if folder_from != folder_to:
+            append = f" was {folder_from}"
+        printt(f"Saving renames for {folder_to}{append}")
+
+        with open(os.path.join(folder_to, rename_history_filename), "w") as history_file:
+            old_foldername = pathlib.Path(folder_from).name
+            new_foldername = pathlib.Path(folder_to).name
+            history_file.write(f"{old_foldername}/{new_foldername}\n")
+
+            for rename in renames[1:]:
+                # the first rename is the folder rename
+                old_filename = pathlib.Path(rename[0]).name
+                new_filename = pathlib.Path(rename[1]).name
+                history_file.write(f"{old_filename}/{new_filename}\n")
 
 
-def apply_renames(renames):
+def apply_renames(all_renames):
     printt(f"Renaming the files")
-    applied_renames = []  # in case the renaming proces throws exceptions so we can undo partial process
-    for rename in renames:
-        try:
-            from_path = rename[0]
-            to_path = rename[1]
-            printt(f"{from_path} -> {to_path}")
+    all_applied_renames = []  # in case the renaming proces throws exceptions so we can undo partial process
+    for renames in all_renames:
+        applied_renames = []
+        folder_rename = renames[0]
+        folder_from = folder_rename[0]
+        folder_to = folder_rename[1]
+        printt(f"Renaming files in {folder_from}")
+        applied_renames.append(folder_rename)  # always save because the first line should always be the folder rename
+        for rename in renames[1:]:
+            try:
+                from_path = rename[0]
+                to_path = rename[1]
+                printt(f"File {from_path} -> {to_path}")
+                if not args.test:
+                    shutil.move(from_path, to_path)
+                    pass
+                applied_renames.append(rename)
+            except:
+                print(f"A rename has failed: {rename}. WARNING: Not all files have been renamed.")
+
+        if folder_from != folder_to:
+            printt(f"Folder: {folder_from} -> {folder_to}")
             if not args.test:
-                # shutil.move(from_path, to_path)
+                shutil.move(folder_from, folder_to)
                 pass
-            applied_renames.append(rename)
-        except:
-            print(f"A rename has failed: {rename}. WARNING: Not all files have been renamed.")
+        else:
+            printt("No folder rename specified")
+        all_applied_renames.append(applied_renames)
     printt(f"Done renaming")
-    return applied_renames
+    return all_applied_renames
 
 
 def read_filenames(folder_path):
@@ -143,7 +181,7 @@ def read_filenames(folder_path):
         if not os.path.isfile(filename_path):
             # skip non-file items like folders
             continue
-        if filename.startswith("rename_history_") and filename.endswith(".txt"):
+        if filename.startswith(".rename_history_") and filename.endswith(".txt"):
             printt(f"Skipping backup file {filename}")
             continue
         if args.ignore_hidden and filename.startswith("."):
@@ -199,10 +237,11 @@ def get_folder_paths():
         folder_paths = []
         for folder_path in parent_folder_paths:
             for item in os.listdir(folder_path):
-                if os.path.isdir(os.path.join(folder_path, item)):
-                    folder_paths.append(item)
+                item_path = os.path.join(folder_path, item)
+                if os.path.isdir(item_path):
+                    folder_paths.append(item_path)
 
-    folder_paths = [os.path.abspath(folder_path) for folder_path in folder_paths]
+    # folder_paths = [os.path.abspath(folder_path) for folder_path in folder_paths]
     print(f"Renaming items in folders: {folder_paths}")
     return folder_paths
 
@@ -212,9 +251,9 @@ all_folders_renames = []
 for folder_path in folder_paths:
     filenames = read_filenames(folder_path)
     renames = determine_renames(folder_path, filenames)
-    all_folders_renames.append(rename)
+    all_folders_renames.append(renames)
 
 validate_renames(all_folders_renames)
-applied_renames = apply_renames(all_folders_renames)
-save_rename_history(applied_renames)
+all_applied_renames = apply_renames(all_folders_renames)
+save_rename_history(all_applied_renames)
 print(f"Rename program finished")

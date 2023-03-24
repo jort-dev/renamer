@@ -31,17 +31,17 @@ Edit the [rename.py](rename.py) file to define how files need to be named, and r
 python renamer.py
 ```
 This launches a file picker to choose the folder in which the files need to be renamed.  
-After renaming the files, a `rename_history_TIMESTAMP.txt` file will be put in the folder.  
+After renaming the files, a `.rename_history_TIMESTAMP.txt` file will be put in the folder.  
 This can be used to undo the renaming process.
 
 ## Undoing renaming
-After renaming the files, a `rename_history_TIMESTAMP.txt` file is saved in the folder.  
+After renaming the files, a `.rename_history_TIMESTAMP.txt` file is saved in the folder.  
 This can be used to undo the renaming by running the [undo_rename.py](undo_rename.py) script:
 ```shell
 python undo_rename.py
 ```
 This launches a folder picker, where you choose a folder in which the renaming needs to be undone.
-In the selected folder, it seeks the last created `rename_history_TIMESTAMP.txt` file, undoes the renaming according to this file, and deletes it.
+In the selected folder, it seeks the last created `.rename_history_TIMESTAMP.txt` file, undoes the renaming according to this file, and deletes it.
 
 
 

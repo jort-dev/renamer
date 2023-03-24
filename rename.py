@@ -1,9 +1,18 @@
+count = 0
+
+
 def rename_file(folder_path, filename, base, extension):
-    return f"{base}_renamed{extension}"
+    global count
+    count += 1
+    return f"renamed_image_{count}{extension}"
 
 
 def rename_folder(parent_folder_path, folder_name):
-    return folder_name
+    global count
+    new_folder_name = f"{folder_name}_{count}"
+    count = 0
+    return new_folder_name
+
 
 
 """
