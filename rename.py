@@ -1,10 +1,9 @@
 def rename_file(folder_path, filename, base, extension):
-    folder_name = folder_path.split("/")[-1]
-    return f"{folder_name}_{filename}"
+    return f"{base}_renamed{extension}"
 
 
-def rename_folder(folder_path, folder_name):
-    return folder_path
+def rename_folder(parent_folder_path, folder_name):
+    return folder_name
 
 
 """

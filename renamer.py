@@ -73,7 +73,15 @@ def determine_renames(folder_path, filenames):
             continue
         new_file_path = os.path.join(folder_path, new_filename)
         renames.append([file_path, new_file_path])
-    printt(f"All {len(renames)} determined")
+
+    printt(f"All {len(renames)} file renames determined, asking folder rename")
+    folder_name = os.path.basename(folder_path)
+    parent_folder_path = folder_path[:-len(folder_name)]
+    folder_name_renamed = rename.rename_folder(parent_folder_path, folder_name)
+    renamed_folder_path = os.path.join(parent_folder_path, folder_name_renamed)
+    folder_rename = [folder_path, renamed_folder_path]
+    printt(f"Folder rename: {folder_path} -> {renamed_folder_path}")
+    renames.insert(0, folder_rename)
     return renames
 
 
@@ -94,7 +102,7 @@ def validate_renames(renames):
     printt(f"All renames are valid")
 
 
-def save_rename_history(folder_path, renames):
+def save_rename_history(renames):
     printt(f"Saving the renaming history")
     # use / as separator because its the only visible illegal filename character
     # https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
@@ -118,7 +126,8 @@ def apply_renames(renames):
             to_path = rename[1]
             printt(f"{from_path} -> {to_path}")
             if not args.test:
-                shutil.move(from_path, to_path)
+                # shutil.move(from_path, to_path)
+                pass
             applied_renames.append(rename)
         except:
             print(f"A rename has failed: {rename}. WARNING: Not all files have been renamed.")
@@ -199,11 +208,13 @@ def get_folder_paths():
 
 
 folder_paths = get_folder_paths()
+all_folders_renames = []
 for folder_path in folder_paths:
     filenames = read_filenames(folder_path)
     renames = determine_renames(folder_path, filenames)
-    validate_renames(renames)
-    applied_renames = apply_renames(renames)
-    # rename folder here todo
-    save_rename_history(folder_path, applied_renames)
+    all_folders_renames.append(rename)
+
+validate_renames(all_folders_renames)
+applied_renames = apply_renames(all_folders_renames)
+save_rename_history(applied_renames)
 print(f"Rename program finished")
