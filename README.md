@@ -1,5 +1,5 @@
 <p align="center">
-<img src="logo.png"><br>
+<img src="img/logo.png"><br>
 <h1 align="center">Renamer</h1>
 </p>
 
