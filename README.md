@@ -4,8 +4,8 @@
 </p>
 
 You configure how each file needs to be renamed with Python code in [rename.py](rename.py).  
-Edit the one-line function `rename_filename()` to define your rename.
-This allows you to rename precisely how you want, being Python that can be as simple or advanced as you want!
+Edit the one-line function `rename_filename()` to define your rename.  
+This allows you to rename precisely how you want, as Python code can be as simple or advanced as you want!
 
 ## Installing
 Open terminal in the cloned folder and create a virtual Python environment called `venv` to prevent package issues:
