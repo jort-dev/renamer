@@ -92,12 +92,12 @@ def parse_history_file(history_file_path):
 
 def undo_renames(folder_path, renames, history_file_path):
     folder_rename = renames[0]
-    old_folder_name = folder_rename[0]
-    new_folder_name = folder_rename[1]
-    parent_folder_path = folder_path[:-len(new_folder_name)]
-    old_folder_path = os.path.join(parent_folder_path, old_folder_name)
+    renamed_from_folder_named = folder_rename[0]
+    renamed_to_folder_name = folder_rename[1]
+    parent_folder_path = folder_path[:-len(renamed_to_folder_name)]
+    old_folder_path = os.path.join(parent_folder_path, renamed_from_folder_named)
 
-    printt(f"Undoing renames in {new_folder_name}")
+    printt(f"Undoing renames in {renamed_to_folder_name}")
     for rename in renames[1:]:
         from_file_path = os.path.join(folder_path, rename[1])
         to_file_path = os.path.join(folder_path, rename[0])
@@ -106,7 +106,7 @@ def undo_renames(folder_path, renames, history_file_path):
 
     printt(f"Deleting history file {history_file_path}")
     os.remove(history_file_path)
-    if old_folder_name != new_folder_name:
+    if renamed_from_folder_named != renamed_to_folder_name:
         if not args.test:
             shutil.move(folder_path, old_folder_path)
 
@@ -118,11 +118,15 @@ def get_folder_paths():
         if not folder_paths:
             quit("You picked an invalid folder")
 
-        for folder_path in folder_paths:
-            if not folder_path or not os.path.isdir(folder_path):
-                quit("You picked an invalid folder")
     else:
         folder_paths = args.folder_paths
+
+    for folder_path in folder_paths:
+        if not folder_path or not os.path.isdir(folder_path):
+            quit("You picked an invalid folder")
+
+    # sanitize trailing slashes
+    folder_paths = [os.path.normpath(folder_path) for folder_path in folder_paths]
 
     # recursively retrieve all the folders within the folders until the defined depth
     for depth in range(1, args.depth + 1):
@@ -135,9 +139,9 @@ def get_folder_paths():
                 if os.path.isdir(item_path):
                     folder_paths.append(item_path)
 
-    # folder_paths = [os.path.abspath(folder_path) for folder_path in folder_paths]
-    print(f"Renaming items in folders: {folder_paths}")
+    print(f"Undoing renaming items in folders: {folder_paths}")
     return folder_paths
+
 
 print(f"Renaming undo program started")
 folder_paths = get_folder_paths()

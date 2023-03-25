@@ -60,12 +60,24 @@ def printt(*argss, **kwargs):
 def determine_renames(folder_path, filenames):
     printt(f"Determining to what the files are going to be renamed")
     renames = []
+    folder_name = os.path.basename(folder_path)
+    parent_folder_path = folder_path[:-len(folder_name)]
+    # -1 to remove the trailing / which makes basename return empty string
+    parent_folder_name = os.path.basename(folder_path[:-len(os.path.basename(folder_path)) - 1])
     for filename in filenames:
         file_path = os.path.join(folder_path, filename)
         filename_base = pathlib.Path(file_path).stem
         filename_extension = pathlib.Path(file_path).suffix
-        new_filename = rename.rename_file(folder_path, filename, filename_base,
-                                          filename_extension)  # separate function for easier configuration
+        printt(f"Asking rename for {filename} with parameters "
+               f"{filename=}, {filename_base=}, {filename_extension=}, {file_path=}, {folder_path=}, {folder_name=}")
+        new_filename = rename.rename_file(
+            filename=filename,
+            filename_base=filename_base,
+            filename_extension=filename_extension,
+            file_path="",
+            folder_path=folder_path,
+            folder_name=folder_name,
+        )
         printt(f"{filename} -> {new_filename}")
         if filename == new_filename:
             printt(f"Filename not changed, ignoring.")
@@ -73,10 +85,13 @@ def determine_renames(folder_path, filenames):
         new_file_path = os.path.join(folder_path, new_filename)
         renames.append([file_path, new_file_path])
 
-    printt(f"All {len(renames)} file renames determined, asking folder rename")
-    folder_name = os.path.basename(folder_path)
-    parent_folder_path = folder_path[:-len(folder_name)]
-    folder_name_renamed = rename.rename_folder(parent_folder_path, folder_name)
+    printt(f"All {len(renames)} file renames determined, "
+           f"asking folder rename with parameters {folder_name=}, {folder_path=}, {parent_folder_name=}")
+    folder_name_renamed = rename.rename_folder(
+        folder_name=folder_name,
+        folder_path=folder_path,
+        parent_folder_name=parent_folder_name,
+    )
     renamed_folder_path = os.path.join(parent_folder_path, folder_name_renamed)
     folder_rename = [folder_path, renamed_folder_path]
     printt(f"Folder rename: {folder_path} -> {renamed_folder_path}")
@@ -124,7 +139,7 @@ def save_rename_history(all_renames):
         folder_to = folder_rename[1]
         append = ""
         if folder_from != folder_to:
-            append = f" was {folder_from}"
+            append = f" (was {folder_from})"
         printt(f"Saving renames for {folder_to}{append}")
 
         with open(os.path.join(folder_to, rename_history_filename), "w") as history_file:
@@ -224,12 +239,16 @@ def get_folder_paths():
         if not folder_paths:
             quit("You picked an invalid folder")
 
-        for folder_path in folder_paths:
-            if not folder_path or not os.path.isdir(folder_path):
-                quit("You picked an invalid folder")
     else:
         folder_paths = args.folder_paths
 
+    for folder_path in folder_paths:
+        if not folder_path or not os.path.isdir(folder_path):
+            quit("You picked an invalid folder")
+
+    # sanitize trailing slashes
+    folder_paths = [os.path.normpath(folder_path) for folder_path in folder_paths]
+   
     # recursively retrieve all the folders within the folders until the defined depth
     for depth in range(1, args.depth + 1):
         printt(f"Scanning depth level {depth}")
@@ -240,8 +259,10 @@ def get_folder_paths():
                 item_path = os.path.join(folder_path, item)
                 if os.path.isdir(item_path):
                     folder_paths.append(item_path)
+        printt(f"Found {len(folder_paths)} items at depth {depth}: {folder_paths}")
 
-    # folder_paths = [os.path.abspath(folder_path) for folder_path in folder_paths]
+    if len(folder_paths) == 0:
+        quit(f"No folders found at this depth level. Try lowering it.")
     print(f"Renaming items in folders: {folder_paths}")
     return folder_paths
 

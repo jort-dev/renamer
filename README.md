@@ -1,5 +1,5 @@
 # Renamer
-Configure how each file needs to be renamed with actual Python code in [rename.py](rename.py).  
+Configure how each file needs to be renamed with Python code in [rename.py](rename.py).  
 This allows you to rename precisely how you want, whilst only knowing basic Python.  
 No need to learn a whole GUI, regular expressions or other specific things.
 
