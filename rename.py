@@ -1,11 +1,14 @@
 # This function is called for EACH file. Return the new filename.
+count = 0
 def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name):
-    return f"{filename_base}_renamed{filename_extension}"
+    global count
+    count += 1
+    return f"video{count}{filename_extension}"
 
 
 # This function is called AFTER renaming ALL the files in ONE folder. Return the new folder name if you want it changed.
 def rename_folder(folder_name, folder_path, parent_folder_name):
-    return f"{folder_name}_renamed"
+    return folder_name
 
 
 """
