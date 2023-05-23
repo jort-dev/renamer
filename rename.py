@@ -1,9 +1,6 @@
 # This function is called for EACH file. Return the new filename.
-count = 0
-def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name):
-    global count
-    count += 1
-    return f"video{count}{filename_extension}"
+def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name, file_index):
+    return f"{filename}"
 
 
 # This function is called AFTER renaming ALL the files in ONE folder. Return the new folder name if you want it changed.
@@ -26,6 +23,7 @@ def rename_file(filename, filename_base, filename_extension, file_path, folder_p
         file_path = C:/Pictures/family/mama.jpg
         folder_path = C:/Pictures/family
         folder_name = family
+        file_index = 0
     You return the new filename, for example family__mama.jpg. In the function you put: 
         return f"{folder_name}_{filename}
     Return the filename itself to not rename anything.
@@ -47,7 +45,7 @@ def rename_folder(folder_name, folder_path, parent_folder_path):
 ^^^^^^^^^^^^^^EXAMPLES^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # Make the folder name the amount of files in each folder, put a number in front of all the files:
 count = 0
-def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name):
+def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name, file_index):
     global count
     count += 1
     return f"{count}_{filename}"
@@ -58,5 +56,8 @@ def rename_folder(folder_name, folder_path, parent_folder_name):
     new_folder_name = f"{folder_name}_{count}"
     count = 0
     return new_folder_name
+    
+    
+For more examples, see the examples folder.
     
 """

@@ -64,7 +64,11 @@ def determine_renames(folder_path, filenames):
     parent_folder_path = folder_path[:-len(folder_name)]
     # -1 to remove the trailing / which makes basename return empty string
     parent_folder_name = os.path.basename(folder_path[:-len(os.path.basename(folder_path)) - 1])
+    file_index = 0  # for tracking and preventing double filenames
+    amount_of_files = len(filenames)
+    print()  # progress bar reset
     for filename in filenames:
+        print(f"Renaming file {file_index} / {amount_of_files}: {filename}", end="\r")
         file_path = os.path.join(folder_path, filename)
         filename_base = pathlib.Path(file_path).stem
         filename_extension = pathlib.Path(file_path).suffix
@@ -74,9 +78,10 @@ def determine_renames(folder_path, filenames):
             filename=filename,
             filename_base=filename_base,
             filename_extension=filename_extension,
-            file_path="",
+            file_path=file_path,
             folder_path=folder_path,
             folder_name=folder_name,
+            file_index=file_index,
         )
         printt(f"{filename} -> {new_filename}")
         if filename == new_filename:
@@ -84,6 +89,10 @@ def determine_renames(folder_path, filenames):
             continue
         new_file_path = os.path.join(folder_path, new_filename)
         renames.append([file_path, new_file_path])
+        file_index += 1
+
+    print()  # progress bar reset
+    print()  # progress bar reset
 
     printt(f"All {len(renames)} file renames determined, "
            f"asking folder rename with parameters {folder_name=}, {folder_path=}, {parent_folder_name=}")
@@ -248,7 +257,7 @@ def get_folder_paths():
 
     # sanitize trailing slashes
     folder_paths = [os.path.normpath(folder_path) for folder_path in folder_paths]
-   
+
     # recursively retrieve all the folders within the folders until the defined depth
     for depth in range(1, args.depth + 1):
         printt(f"Scanning depth level {depth}")
