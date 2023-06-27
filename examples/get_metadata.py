@@ -2,6 +2,7 @@
 Get exifdata from files, like the used phone or a creation timestamp.
 """
 import os
+from datetime import datetime
 
 from exiftool import ExifToolHelper
 
@@ -30,35 +31,51 @@ def get_exif_value(path, *keys):
         print(f"In above metadata, no key containing {keys} was found for {path}")
 
 
-folder_path = "/home/jort/Pictures/rename_test"
-for item_name in os.listdir(folder_path):
-    item_path = os.path.join(folder_path, item_name)
-    if not os.path.isfile(item_path):
-        continue
-    model = get_exif_value(item_path, "Model")
-    timestamp = get_exif_value(item_path, "CDate")
-    timestamp = timestamp.replace(":", "").replace(" ", "_")
-    print(f"{item_name:40} Model: {model:20} Creation: {timestamp}")
+def ms_to_timestamp(ms):
+    return datetime.fromtimestamp(ms / 1000.0)
+
+
+def mtime_stamp(file_path):
+    timestamp = os.path.getmtime(file_path)
+    timestamp = datetime.fromtimestamp(timestamp)
+    return timestamp.strftime("%Y%m%d_%H%M%S")
+
+
+def get_timestamp(file_path):
+    # returns the first timestamp found in the metadata, otherwise the file modification date
+    # returns: YYYYMMDD_HHMMSS
+    try:
+        timestamp = get_exif_value(file_path, "CreateDate", "Date")  # "Date" is the fallback, it matches a lot
+        timestamp = timestamp.replace(":", "").replace(" ", "_")
+        timestamp = timestamp.split("+", 1)[0]  # remove timezone stuff if its there
+        if "0000" in timestamp:
+            timestamp = mtime_stamp(file_path)
+        return timestamp
+    except:
+        return mtime_stamp(file_path)
+
 
 """
 Example:
 I used the following code to show the used camera and timestamp for a set of mixed photos.
-from exiftool import ExifToolHelper
-def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name, file_index):
-    if "PXL" in filename: # my pixel does not have a model number with videos
-        model = "Pixel 7"
-    elif "000" in filename: # same for my camera
-        model = "DSC-RX100M5"
-    else:
-        model = get_exif_value(file_path, "Model")
 
-    timestamp = get_exif_value(file_path, "CreateDate", "Date")  # "Date" is the fallback, it matches a lot
-    timestamp = timestamp.replace(":", "").replace(" ", "_")
-    if model == "DSC-RX100M5":
-        model = "jort_cam"
-    elif model == "Pixel 7":
-        model = "jort_phone"
-    elif model == "OnePlus":
-        model = "others_phone"
-    return f"{timestamp}_{model}_item{file_index}{filename_extension.lower()}"
+from examples.get_metadata import *
+# This function is called for EACH file. Return the new filename.
+def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name, file_index):
+    if "PXL" in filename:
+        model = "pixel"
+    elif "IMG" in filename:
+        model = "iphone"
+    elif "00" in filename or "DSC" in filename:
+        model = "sony"
+    else:
+        model = "panasonic"
+
+    try:
+        timestamp = get_timestamp(file_path)
+        new = f"{timestamp}_{model}{filename_extension}"
+    except:
+        new = f"IDK_{model}{filename_extension}"
+    print(f"{filename} -> {new}")
+    return new
 """

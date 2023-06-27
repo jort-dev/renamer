@@ -1,6 +1,6 @@
 # This function is called for EACH file. Return the new filename.
 def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name, file_index):
-    return f"{filename}"
+    return filename
 
 
 # This function is called AFTER renaming ALL the files in ONE folder. Return the new folder name if you want it changed.

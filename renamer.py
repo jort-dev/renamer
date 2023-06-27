@@ -119,17 +119,19 @@ def validate_renames(all_renames):
             if os.path.exists(folder_to):
                 quit(f"Cannot rename: folder rename is existing path: {folder_to}")
 
-        used_paths = []
+        used_renames = []
         for rename in renames[1:]:
             old = rename[0]
             if not os.path.isfile(old):
                 quit(f"Cannot rename, not a file: {old}")
             new = rename[1]
             if os.path.exists(new):
-                quit(f"Cannot rename: existing path: {new}")
-            if new in used_paths:
-                quit(f"Cannot rename: duplicate renamed file, files must have unique filenames: {new}")
-            used_paths.append(new)
+                quit(f"Cannot rename: existing path: {old} -> {new}")
+            for used_rename in used_renames:
+                if used_rename[1] == new:
+                    quit(f"Cannot rename: duplicate renamed file, files must have unique filenames: "
+                         f"can't rename {old} to {new} because {used_rename[0]} is already being renamed to it.")
+            used_renames.append(rename)
 
     printt(f"All renames are valid")
 
