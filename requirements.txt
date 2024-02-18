@@ -1,5 +1,5 @@
 natsort # needed to sort stuff same way as file manager (natural sort: 2 comes after 1, not 11)
-pygobject # needed for pywebview
-pywebview[qt] # needed for file picker
-Pillow # needed for image metadata extraction
-PyExifTool # exif data
+# pygobject # needed for pywebview
+# pywebview[qt] # needed for file picker
+Pillow # needed for image metadata extraction (example)
+PyExifTool # exif data (example)

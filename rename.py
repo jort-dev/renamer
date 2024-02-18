@@ -1,9 +1,6 @@
 # This function is called for EACH file. Return the new filename.
-count = 0
 def rename_file(filename, filename_base, filename_extension, file_path, folder_path, folder_name, file_index):
-    global count
-    count += 1
-    return f"image{count}{filename_extension}"
+    return filename
 
 
 # This function is called AFTER renaming ALL the files in ONE folder. Return the new folder name if you want it changed.
