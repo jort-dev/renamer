@@ -167,14 +167,23 @@ try:
         renamed_to_folder_name = folder_rename[1]
         parent_folder_path = folder_path[:-len(renamed_to_folder_name)]
         old_folder_path = os.path.join(parent_folder_path, renamed_from_folder_named)
+        rename_fail_count = 0
 
         printt(f"Undoing renames in {renamed_to_folder_name}")
         for rename in renames[1:]:
             from_file_path = os.path.join(folder_path, rename[1])
+            if not os.path.exists(from_file_path):
+                printt(f"WARNING: could not find {from_file_path}")
+                rename_fail_count += 1
+                continue
+
             to_file_path = os.path.join(folder_path, rename[0])
             if not args.test:
                 shutil.move(from_file_path, to_file_path)
 
+        if rename_fail_count > 0:
+            printt(f"NOT deleting history file {history_file_path}, because {rename_fail_count} renames failed. You could delete it manually.")
+            return
         printt(f"Deleting history file {history_file_path}")
         os.remove(history_file_path)
         if renamed_from_folder_named != renamed_to_folder_name:
